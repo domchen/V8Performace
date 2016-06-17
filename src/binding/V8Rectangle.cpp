@@ -7,8 +7,7 @@ namespace {
 
 #define GETTER_CONTENT(className, name) \
     auto self = info.Holder(); \
-    auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0)); \
-    auto ptr = wrap->Value(); \
+    auto ptr = self->GetAlignedPointerFromInternalField(0); \
     auto value = static_cast<className*>(ptr)->name; \
     info.GetReturnValue().Set(value);
 
@@ -16,8 +15,7 @@ namespace {
 
 #define SETTER_CONTENT(className, name) \
     auto self = info.Holder(); \
-    auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0)); \
-    auto ptr = wrap->Value(); \
+    auto ptr = self->GetAlignedPointerFromInternalField(0); \
     static_cast<className*>(ptr)->name = (float) value->NumberValue();
 
 #define SET_ACCESSOR(name, getter, setter) self->SetAccessor(v8::String::NewFromUtf8(isolate, name), getter, setter);
@@ -48,17 +46,15 @@ namespace {
         float width = float(args[2]->IsUndefined() ? 0 : args[2]->NumberValue());
         float height = float(args[3]->IsUndefined() ? 0 : args[3]->NumberValue());
         auto self = args.Holder();
-        auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0));
-        auto ptr = wrap->Value();
+        auto ptr = self->GetAlignedPointerFromInternalField(0);
         static_cast<Rectangle*>(ptr)->setTo(x, y, width, height);
     }
 
     void toStringMethod(const v8::FunctionCallbackInfo<v8::Value>& args) {
         auto self = args.Holder();
-        auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0));
-        auto rect = static_cast<Rectangle*>(wrap->Value());
+        auto rect = static_cast<Rectangle*>(self->GetAlignedPointerFromInternalField(0));
         auto value = rect->toString();
-        auto utf = v8::String::NewFromUtf8(args.GetIsolate(),value.c_str());
+        auto utf = v8::String::NewFromUtf8(args.GetIsolate(), value.c_str());
         args.GetReturnValue().Set(utf);
     }
 
@@ -69,8 +65,8 @@ namespace {
         float height = float(args[3]->IsUndefined() ? 0 : args[3]->NumberValue());
         Rectangle* rect = new Rectangle(x, y, width, height);
         auto self = args.Holder();
+        self->SetAlignedPointerInInternalField(0, rect);
         auto isolate = args.GetIsolate();
-        self->SetInternalField(0, v8::External::New(isolate, rect));
         SET_ACCESSOR("x", xGetter, xSetter);
         SET_ACCESSOR("y", yGetter, ySetter);
         SET_ACCESSOR("width", widthGetter, widthSetter);

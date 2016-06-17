@@ -1,5 +1,6 @@
 #include "V8Matrix.h"
 #include "../core/Matrix.h"
+#include "../../third_party/v8/include/v8.h"
 
 namespace {
 
@@ -7,8 +8,7 @@ namespace {
 
 #define GETTER_CONTENT(className, name) \
     auto self = info.Holder(); \
-    auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0)); \
-    auto ptr = wrap->Value(); \
+    auto ptr = self->GetAlignedPointerFromInternalField(0); \
     auto value = static_cast<className*>(ptr)->name; \
     info.GetReturnValue().Set(value);
 
@@ -16,8 +16,7 @@ namespace {
 
 #define SETTER_CONTENT(className, name) \
     auto self = info.Holder(); \
-    auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0)); \
-    auto ptr = wrap->Value(); \
+    auto ptr = self->GetAlignedPointerFromInternalField(0); \
     static_cast<className*>(ptr)->name = (float) value->NumberValue();
 
 #define SET_ACCESSOR(name, getter, setter) self->SetAccessor(v8::String::NewFromUtf8(isolate, name), getter, setter);
@@ -57,25 +56,21 @@ namespace {
         float tx = float(args[4]->IsUndefined() ? 0 : args[4]->NumberValue());
         float ty = float(args[5]->IsUndefined() ? 0 : args[5]->NumberValue());
         auto self = args.Holder();
-        auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0));
-        auto ptr = wrap->Value();
+        auto ptr = self->GetAlignedPointerFromInternalField(0);
         static_cast<Matrix*>(ptr)->setTo(a, b, c, d, tx, ty);
     }
 
     void transformBoundsMethod(const v8::FunctionCallbackInfo<v8::Value>& args) {
-        auto obj = args[0]->ToObject();
-        auto wrap = v8::Local<v8::External>::Cast(obj->GetInternalField(0));
-        auto rect = static_cast<Rectangle*>(wrap->Value());
+        auto obj = v8::Local<v8::Object>::Cast(args[0]);
+        auto rect = static_cast<Rectangle*>(obj->GetAlignedPointerFromInternalField(0));
         auto self = args.Holder();
-        wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0));
-        auto matrix = static_cast<Matrix*>(wrap->Value());
+        auto matrix = static_cast<Matrix*>(self->GetAlignedPointerFromInternalField(0));
         matrix->transformBounds(rect);
     }
 
     void toStringMethod(const v8::FunctionCallbackInfo<v8::Value>& args) {
         auto self = args.Holder();
-        auto wrap = v8::Local<v8::External>::Cast(self->GetInternalField(0));
-        auto matrix = static_cast<Matrix*>(wrap->Value());
+        auto matrix = static_cast<Matrix*>(self->GetAlignedPointerFromInternalField(0));
         auto value = matrix->toString();
         auto utf = v8::String::NewFromUtf8(args.GetIsolate(),value.c_str());
         args.GetReturnValue().Set(utf);
@@ -90,8 +85,8 @@ namespace {
         float ty = float(args[5]->IsUndefined() ? 0 : args[5]->NumberValue());
         Matrix* matrix = new Matrix(a, b, c, d, tx, ty);
         auto self = args.Holder();
+        self->SetAlignedPointerInInternalField(0,matrix);
         auto isolate = args.GetIsolate();
-        self->SetInternalField(0, v8::External::New(isolate, matrix));
         SET_ACCESSOR("a", aGetter, aSetter);
         SET_ACCESSOR("b", bGetter, bSetter);
         SET_ACCESSOR("c", cGetter, cSetter);
