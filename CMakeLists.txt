@@ -26,4 +26,14 @@ add_custom_target(JSTest ALL DEPENDS ${CMAKE_BINARY_DIR}/JSTest.js)
 
 add_executable(Main ${SOURCE_FILES})
 
+if (MSVC)
+    set(cc_flags "/w /GR-")
+else()
+    set(cc_flags "-w -fno-rtti -fno-exceptions")
+endif()
+set_target_properties(Main PROPERTIES
+        COMPILE_FLAGS ${cc_flags}
+        CXX_VISIBILITY_PRESET hidden
+        VISIBILITY_INLINES_HIDDEN true)
+
 target_link_libraries(Main ${v8})

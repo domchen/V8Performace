@@ -126,7 +126,7 @@ var rect = new Rectangle();
 var matrix = new Matrix(2, 0, 0, 0.5, 11, 19);
 
 var TIMES = 10;
-var SIZE = 100000;
+var SIZE = 1000000;
 
 var data = [];
 var i, t, x, y, width, height, index, start;
