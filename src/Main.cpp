@@ -1,13 +1,12 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "libplatform/libplatform.h"
 #include "v8.h"
-#include "binding/V8Point.h"
-#include "utils/getTimer.h"
-#include <iostream>
+#include "binding/V8Console.h"
+#include "binding/V8Matrix.h"
+#include "binding/V8Rectangle.h"
 #include "utils/File.h"
 
 
@@ -26,7 +25,7 @@ public:
 };
 
 
-int main(int argc, char* argv[])  {
+int main(int argc, char* argv[]) {
     // Initialize V8.
     V8::InitializeICU();
     Platform* platform = platform::CreateDefaultPlatform();
@@ -45,7 +44,9 @@ int main(int argc, char* argv[])  {
         HandleScope handle_scope(isolate);
 
         Local<ObjectTemplate> global = ObjectTemplate::New(isolate);
-        V8Point::install(isolate, global);
+        V8Console::install(isolate, global);
+        V8Rectangle::install(isolate, global);
+        V8Matrix::install(isolate, global);
 
         // Create a new context.
         Local<Context> context = Context::New(isolate, nullptr, global);
@@ -53,43 +54,25 @@ int main(int argc, char* argv[])  {
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
-        char* jsText = File::read("test.js");
+        auto text = File::read("JSTest.js");
         // Create a string containing the JavaScript source code.
         Local<String> source =
-                String::NewFromUtf8(isolate, jsText,
+                String::NewFromUtf8(isolate, text.c_str(),
                                     NewStringType::kNormal).ToLocalChecked();
-        delete []jsText;
 
         // Compile the source code.
         Local<Script> script = Script::Compile(context, source).ToLocalChecked();
 
+        TryCatch trycatch(isolate);
         // Run the script to get the result.
         Local<Value> result = script->Run(context).ToLocalChecked();
 
-        // Convert the result to an UTF8 string and print it.
-        String::Utf8Value utf8(result);
-        printf("%s\n", *utf8);
-
+        if (result.IsEmpty()) {
+            Local<Value> exception = trycatch.Exception();
+            String::Utf8Value exception_str(exception);
+            printf("Exception: %s\n", *exception_str);
+        }
     }
-
-    const int TIMES = 1;
-    const int SIZE = 1000000;
-    int index = 0;
-    short* data = new short[SIZE * 4];
-    for (int i = 0; i < SIZE; i++) {
-        data[index++] = short(random() * 100);
-        data[index++] = short(random() * 100);
-        data[index++] = short(random() * 100);
-        data[index++] = short(random() * 100);
-    }
-    double start = getTimer();
-    for (int i = 0; i < TIMES; i++) {
-        V8Point::runTest(data, SIZE, i);
-    }
-
-    double nativeTime = getTimer() - start;
-    std::cout << "Native:" << nativeTime << "ms";
-    delete []data;
 
     // Dispose the isolate and tear down V8.
     isolate->Dispose();

@@ -19,9 +19,10 @@ find_include_dirs(includes third_party/v8/include/*.h)
 include_directories(${includes})
 file (GLOB_RECURSE v8 third_party/v8/mac/*.a)
 
-add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/test.js
-        COMMAND ${CMAKE_COMMAND} -E copy ${V8Performance_SOURCE_DIR}/src/js/test.js ${CMAKE_BINARY_DIR}/test.js)
-add_custom_target(COPY_JS ALL DEPENDS ${CMAKE_BINARY_DIR}/test.js)
+add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/JSTest.js
+        COMMAND ${CMAKE_COMMAND} -E copy ${V8Performance_SOURCE_DIR}/src/js/JSTest.js ${CMAKE_BINARY_DIR}/JSTest.js
+        MAIN_DEPENDENCY ${V8Performance_SOURCE_DIR}/src/js/JSTest.js)
+add_custom_target(JSTest ALL DEPENDS ${CMAKE_BINARY_DIR}/JSTest.js)
 
 add_executable(Main ${SOURCE_FILES})
 
