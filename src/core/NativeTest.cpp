@@ -4,6 +4,7 @@
 #include "../utils/getTimer.h"
 #include "iostream"
 
+
 void runNative(const short* data, const int TIMES, const int SIZE) {
 
     auto rect = new Rectangle();
@@ -22,5 +23,21 @@ void runNative(const short* data, const int TIMES, const int SIZE) {
         }
     }
     auto nativeTime = getTimer() - start;
-    std::cout << "Native耗时:" << (int)nativeTime << "ms";
+    std::cout << "Native耗时:" << (int) nativeTime << "ms\n";
+
+    //Native-NoField测试
+    start = getTimer();
+    for (int t = 0; t < TIMES; t++) {
+        int index = 0;
+        for (int i = 0; i < SIZE; i++) {
+            short x = data[index++];
+            short y = data[index++];
+            short width = data[index++];
+            short height = data[index++];
+            Matrix::transformBoundsNoField(x, y, width, height);
+        }
+    }
+    auto nativeNoPropTime = getTimer() - start;
+    std::cout << "Native-NoField耗时:" << (int) nativeTime << "ms\n";
 }
+

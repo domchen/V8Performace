@@ -6,6 +6,8 @@
 
 class Matrix {
 public:
+    static void transformBoundsNoField(float x, float y, float width, float height);
+
     Matrix(float a = 1, float b = 0, float c = 0, float d = 1, float tx = 0, float ty = 0);
 
     /**

@@ -119,6 +119,50 @@ var MatrixJS = (function () {
     return MatrixJS;
 })();
 
+function transformBoundsNoField(x, y, width, height) {
+    var a = 2;
+    var b = 0;
+    var c = 0;
+    var d = 0.5;
+    var tx = 11;
+    var ty = 19;
+    var xMax = x + width;
+    var yMax = y + height;
+    var x0 = a * x + c * y + tx;
+    var y0 = b * x + d * y + ty;
+    var x1 = a * xMax + c * y + tx;
+    var y1 = b * xMax + d * y + ty;
+    var x2 = a * xMax + c * yMax + tx;
+    var y2 = b * xMax + d * yMax + ty;
+    var x3 = a * x + c * yMax + tx;
+    var y3 = b * x + d * yMax + ty;
+    var tmp = 0;
+    if (x0 > x1) {
+        tmp = x0;
+        x0 = x1;
+        x1 = tmp;
+    }
+    if (x2 > x3) {
+        tmp = x2;
+        x2 = x3;
+        x3 = tmp;
+    }
+    x = Math.floor(x0 < x2 ? x0 : x2);
+    width = Math.ceil((x1 > x3 ? x1 : x3) - x);
+    if (y0 > y1) {
+        tmp = y0;
+        y0 = y1;
+        y1 = tmp;
+    }
+    if (y2 > y3) {
+        tmp = y2;
+        y2 = y3;
+        y3 = tmp;
+    }
+    y = Math.floor(y0 < y2 ? y0 : y2);
+    height = Math.ceil((y1 > y3 ? y1 : y3) - y);
+};
+
 
 var rectJS = new RectangleJS();
 var matrixJS = new MatrixJS(2, 0, 0, 0.5, 11, 19);
@@ -154,6 +198,21 @@ for (t = 0; t < TIMES; t++) {
 }
 var jsTime = Date.now() - start;
 console.log("JS耗时:" + jsTime + "ms");
+
+//JS-NoProp测试
+start = Date.now();
+for (t = 0; t < TIMES; t++) {
+    index = 0;
+    for (i = 0; i < SIZE; i++) {
+        x = data[index++];
+        y = data[index++];
+        width = data[index++];
+        height = data[index++];
+        transformBoundsNoField(x, y, width, height);
+    }
+}
+var jsTime = Date.now() - start;
+console.log("JS-NoField耗时:" + jsTime + "ms");
 
 //JSBinding测试
 start = Date.now();

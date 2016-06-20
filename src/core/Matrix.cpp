@@ -75,3 +75,54 @@ std::string Matrix::toString() {
            ", d=" + std::to_string(this->d) + ", tx=" + std::to_string(this->tx) + ", ty=" + std::to_string(this->ty) +
            ")";
 }
+
+void Matrix::transformBoundsNoField(float x, float y, float width, float height) {
+    float a = 2;
+    float b = 0;
+    float c = 0;
+    float d = 0.5;
+    float tx = 11;
+    float ty = 19;
+
+    float xMax = x + width;
+    float yMax = y + height;
+
+    float x0 = a * x + c * y + tx;
+    float y0 = b * x + d * y + ty;
+    float x1 = a * xMax + c * y + tx;
+    float y1 = b * xMax + d * y + ty;
+    float x2 = a * xMax + c * yMax + tx;
+    float y2 = b * xMax + d * yMax + ty;
+    float x3 = a * x + c * yMax + tx;
+    float y3 = b * x + d * yMax + ty;
+
+    float tmp = 0;
+
+    if (x0 > x1) {
+        tmp = x0;
+        x0 = x1;
+        x1 = tmp;
+    }
+    if (x2 > x3) {
+        tmp = x2;
+        x2 = x3;
+        x3 = tmp;
+    }
+
+    x = floorf(x0 < x2 ? x0 : x2);
+    width = ceilf((x1 > x3 ? x1 : x3) - x);
+
+    if (y0 > y1) {
+        tmp = y0;
+        y0 = y1;
+        y1 = tmp;
+    }
+    if (y2 > y3) {
+        tmp = y2;
+        y2 = y3;
+        y3 = tmp;
+    }
+
+    y = floorf(y0 < y2 ? y0 : y2);
+    height = ceilf((y1 > y3 ? y1 : y3) - y);
+}
