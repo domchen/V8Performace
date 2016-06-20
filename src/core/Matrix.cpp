@@ -1,6 +1,5 @@
 #include "Matrix.h"
 #include "math.h"
-#include <sstream>
 
 Matrix::Matrix(float a, float b, float c, float d, float tx, float ty) {
     this->setTo(a, b, c, d, tx, ty);
@@ -72,7 +71,7 @@ void Matrix::transformBounds(Rectangle* bounds) {
 }
 
 std::string Matrix::toString() {
-    std::stringstream ss;
-    ss << "(a="<<this->a<<", b="<<this->b<<", c="<<this->c<<", d="<<this->d<<", tx="<<this->tx<<", ty="<<this->ty<<")";
-    return ss.str();
+    return "(a=" + std::to_string(this->a) + ", b=" + std::to_string(this->b) + ", c=" + std::to_string(this->c) +
+           ", d=" + std::to_string(this->d) + ", tx=" + std::to_string(this->tx) + ", ty=" + std::to_string(this->ty) +
+           ")";
 }
