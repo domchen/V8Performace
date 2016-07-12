@@ -27,7 +27,7 @@ public:
 
 int main(int argc, char* argv[]) {
     // Initialize V8.
-    V8::InitializeICU();
+    V8::InitializeExternalStartupData("natives_blob.bin","snapshot_blob.bin");
     Platform* platform = platform::CreateDefaultPlatform();
     V8::InitializePlatform(platform);
     V8::Initialize();
