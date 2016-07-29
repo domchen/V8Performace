@@ -1,5 +1,6 @@
 #include "V8Console.h"
 #include "../core/NativeTest.h"
+#include "JSHelper.h"
 
 namespace {
 
@@ -9,7 +10,9 @@ namespace {
     }
 
     void runtNativeTestMethod(const v8::FunctionCallbackInfo<v8::Value>& args) {
-        auto times = (int) args[1]->NumberValue();
+        auto isolate = args.GetIsolate();
+        auto context = isolate->GetCurrentContext();
+        auto times = static_cast<int>(args[1]->NumberValue(context).FromJust());
         auto array = v8::Local<v8::Int16Array>::Cast(args[0]);
         int size = int(array->Length() / 4);
         auto content = array->Buffer()->GetContents();
@@ -20,8 +23,8 @@ namespace {
 
 void V8Console::install(v8::Isolate* isolate, v8::Local<v8::ObjectTemplate> parent) {
     auto console = v8::ObjectTemplate::New(isolate);
-    console->Set(v8::String::NewFromUtf8(isolate, "log"), v8::FunctionTemplate::New(isolate, logMethod));
-    parent->Set(v8::String::NewFromUtf8(isolate, "runtNativeTest"),
+    console->Set(isolate, "log", v8::FunctionTemplate::New(isolate, logMethod));
+    parent->Set(isolate, "runtNativeTest",
                 v8::FunctionTemplate::New(isolate, runtNativeTestMethod));
-    parent->Set(v8::String::NewFromUtf8(isolate, "console"), console);
+    parent->Set(isolate, "console", console);
 }

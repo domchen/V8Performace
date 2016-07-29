@@ -22,7 +22,7 @@ function (find_include_dirs out)
 endfunction()
 
 find_include_dirs(includes third_party/v8/include/*.h)
-include_directories(${includes})
+include_directories(${includes} src)
 file (GLOB_RECURSE v8_lib third_party/v8/${BUILD_TYPE}/*.a)
 
 set(RESOURCE_FILES)
