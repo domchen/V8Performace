@@ -8,7 +8,7 @@
 #include "binding/V8Matrix.h"
 #include "binding/V8Rectangle.h"
 #include "utils/File.h"
-
+#include "debug/DebugAgent.h"
 
 using namespace v8;
 
@@ -27,7 +27,7 @@ public:
 
 int main(int argc, char* argv[]) {
     // Initialize V8.
-    V8::InitializeExternalStartupData("natives_blob.bin","snapshot_blob.bin");
+    V8::InitializeExternalStartupData("natives_blob.bin", "snapshot_blob.bin");
     Platform* platform = platform::CreateDefaultPlatform();
     V8::InitializePlatform(platform);
     V8::Initialize();
@@ -54,24 +54,42 @@ int main(int argc, char* argv[]) {
         // Enter the context for compiling and running the hello world script.
         Context::Scope context_scope(context);
 
-        auto text = File::read("JSTest.js");
-        // Create a string containing the JavaScript source code.
-        Local<String> source =
-                String::NewFromUtf8(isolate, text.c_str(),
-                                    NewStringType::kNormal).ToLocalChecked();
+        std::string path = argv[0];
+        std::replace(path.begin(), path.end(), '\\', '/');
+        auto index = path.rfind("/");
+        std::string currentPath = path.substr(0, index + 1);
 
-        // Compile the source code.
-        Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+        // Enable the debug angent.
+        std::string arg = argc > 1 ? argv[1] : "";
+        bool waitForConnection = (arg == "--debug-brk");
+        DebugAgent::Initialize(currentPath);
+        DebugAgent::Enable("Elven", 5959, waitForConnection);
 
-        TryCatch trycatch(isolate);
-        // Run the script to get the result.
-        Local<Value> result = script->Run(context).ToLocalChecked();
-
-        if (result.IsEmpty()) {
-            Local<Value> exception = trycatch.Exception();
+        auto jsPath = currentPath + "JSTest.js";
+        auto text = File::read(jsPath.c_str());
+        auto source = v8::String::NewFromUtf8(isolate, text.c_str(),
+                                              v8::NewStringType::kNormal).ToLocalChecked();
+        v8::ScriptOrigin origin(
+                v8::String::NewFromUtf8(isolate, jsPath.c_str(),
+                                        v8::NewStringType::kNormal).ToLocalChecked());
+        TryCatch tryCatch(isolate);
+        auto script = v8::Script::Compile(context, source, &origin);
+        if (script.IsEmpty()) {
+            Local<Value> exception = tryCatch.Exception();
             String::Utf8Value exception_str(exception);
             printf("Exception: %s\n", *exception_str);
         }
+        else {
+            // Run the script to get the result.
+            Local<Value> result = script.ToLocalChecked()->Run(context).ToLocalChecked();
+
+            if (result.IsEmpty()) {
+                Local<Value> exception = tryCatch.Exception();
+                String::Utf8Value exception_str(exception);
+                printf("Exception: %s\n", *exception_str);
+            }
+        }
+
     }
 
     // Dispose the isolate and tear down V8.
