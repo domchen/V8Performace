@@ -14,11 +14,6 @@ class DebugAgent {
 public:
 
     /**
-     * Initialize the v8 debug agent.
-     * @param currentDirectory a unix sytle path of a writable directory for generating the debug-agent.js file.
-     */
-    static void Initialize(std::string currentDirectory);
-    /**
      * Enable the V8 debug agent. The debug agent will listen on the supplied TCP/IP port for remote debugger connection.
      * @param hostName the name of the embedding application.
      * @param port the TCP/IP port to listen on.

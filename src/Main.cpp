@@ -62,7 +62,6 @@ int main(int argc, char* argv[]) {
         // Enable the debug angent.
         std::string arg = argc > 1 ? argv[1] : "";
         bool waitForConnection = (arg == "--debug-brk");
-        DebugAgent::Initialize(currentPath);
         DebugAgent::Enable("Elven", 5959, waitForConnection);
 
         auto jsPath = currentPath + "JSTest.js";

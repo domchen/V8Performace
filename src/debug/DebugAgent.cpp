@@ -168,45 +168,6 @@ static bool SendConnectMessage(Socket* conn,
 }
 
 DebugAgent* DebugAgent::debugAgent = nullptr;
-bool DebugAgent::initialized = false;
-
-void DebugAgent::Initialize(std::string currentDirectory) {
-    if (DebugAgent::initialized) {
-        return;
-    }
-    DebugAgent::initialized = true;
-    auto isolate = v8::Isolate::GetCurrent();
-    ASSERT(isolate != nullptr);
-    auto context = isolate->GetCurrentContext();
-    ASSERT(!context.IsEmpty());
-    v8::HandleScope handleScope(isolate);
-    auto length = currentDirectory.length();
-    if (currentDirectory[length - 1] != '/') {
-        currentDirectory += "/";
-    }
-    std::string jsPath = currentDirectory + "debug-agent.js";
-    std::string jsText = "var process = {pid:1,version:\"6.3.1\"};\n"
-            "process.mainModule = {filename:\"";
-    jsText += jsPath;
-    jsText += "\"};\n";
-    jsText += "process.cwd = function () {\n"
-            "    return \"";
-    jsText += currentDirectory;
-    jsText += "\";\n"
-            "};\n";
-
-    std::ofstream jsFile;
-    jsFile.open(jsPath, std::ios::trunc);
-    jsFile << jsText;
-    jsFile.close();
-
-    auto source = v8::String::NewFromUtf8(isolate, jsText.c_str(),
-                                          v8::NewStringType::kNormal).ToLocalChecked();
-    v8::ScriptOrigin origin(
-            v8::String::NewFromUtf8(isolate, jsPath.c_str(),
-                                    v8::NewStringType::kNormal).ToLocalChecked());
-    v8::Script::Compile(context, source, &origin).ToLocalChecked()->Run(context);
-}
 
 void DebugAgent::Enable(const std::string& hostName, int port, bool waitForConnection) {
     ASSERT(debugAgent == nullptr);
