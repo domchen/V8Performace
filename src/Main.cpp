@@ -93,6 +93,7 @@ int main(int argc, char* argv[]) {
 
     // Dispose the isolate and tear down V8.
     isolate->Dispose();
+    DebugAgent::Disable();
     V8::Dispose();
     V8::ShutdownPlatform();
     delete platform;

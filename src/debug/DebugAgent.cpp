@@ -115,7 +115,7 @@ static std::string ReceiveMessage(Socket* conn) {
     }
 
     // Read body.
-    char* buffer = new char[content_length + 1];
+    char buffer[content_length + 1];
     received = ReceiveAll(conn, buffer, content_length);
     if (received < content_length) {
         return std::string();
